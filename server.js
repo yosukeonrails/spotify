@@ -7,17 +7,16 @@ var getFromApi = function(endpoint, args) {
     var emitter = new events.EventEmitter();
 
     unirest.get('https://api.spotify.com/v1/' + endpoint)
-        .qs(args)
-        .end(function(response) {
-            if (response.ok) {
-
-                emitter.emit('end', response.body);
-
-
-            } else {
-                emitter.emit('error', response.code);
-            }
-        });
+           .qs(args)
+           .end(function(response) {
+                if (response.ok) {
+                    emitter.emit('end', response.body);
+                    console.log(response.body);
+                }
+                else {
+                    emitter.emit('error', response.code);
+                }
+            });
     return emitter;
 };
 
@@ -31,44 +30,42 @@ app.get('/search/:name', function(req, res) {
         type: 'artist'
     });
 
-
-
-
     searchReq.on('end', function(item) {
 
         var artist = item.artists.items[0];
 
-        var artistId = item.artists.items[0].id;
+       var artistId= item.artists.items[0].id;
 
-        var searchRel = getFromApi('artists/' + artistId + '/related-artists');
+       var searchRel= getFromApi('artists/'+artistId+'/related-artists');
 
-        searchRel.on('end', function(data) {
 
-            artist.related = data.artists;
 
+       searchRel.on('end', function(data){
+
+          artist.related = data.artists;
             var artistArray = data.artists;
 
-            searchTop = artistArray.forEach(function(singleArtist) {
+            artistArray.forEach(function(singleArtist){
 
-                var singleArtistId = singleArtist.id;
-                getFromApi('artists/' + singleArtistId + '/top-tracks', {
-                    country: 'US'
-                });
+                 var singleArtistId= singleArtist.id;
+
+                 var searchTop = getFromApi('artists/' + singleArtistId + '/top-tracks', {
+                     country: 'US'
+                 });
+
             });
 
+      
 
 
-            artist.tracks = data.tracks;
-            res.json(artist);
+            //  artist.related.tracks= data.tracks;
+          res.json(artist);
 
+       });
 
-        });
-
-
-
-        searchRel.on('error', function(code) {
+       searchRel.on('error', function(code){
             res.sendStatus(code);
-        });
+       });
 
     });
 
