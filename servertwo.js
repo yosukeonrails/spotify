@@ -44,10 +44,9 @@ app.get('/search/:name', function(req, res) {
 
         searchRel.on('end', function(data) {
 
-            artist.related = data.artists;
+            artist.related = data.artists; // for each artist.related it will be rendered
 
             var artistArray = data.artists;
-
 
             artistArray.forEach(function(singleArtist) {
 
@@ -55,35 +54,28 @@ app.get('/search/:name', function(req, res) {
 
                 var searchTop = getFromApi('artists/' + singleArtistId + '/top-tracks', {
                     country: 'US'
-                }); //request
+                });
 
                 searchTop.on('end', function(data) {
 
-                  if(!data){
-                    throw err;
-                  }
+                    if(!data){
+                      throw err;
+                    }
 
+                    artist.tracks = data.tracks;
+                    // console.log(artist);
+                    res.json(artist);
 
                 });
 
-
-                searchTop.on('error', function(code) {
-                    res.sendStatus(code);
-                });
 
             });
 
 
-            // artistArray.forEach(function(singleArtist){
-            //     console.log(singleArtist);
-            // });
-            //
-
-            res.json(artist);
-              artist.tracks = data.tracks;
-            console.log(artist);
 
         });
+
+
 
 
 
